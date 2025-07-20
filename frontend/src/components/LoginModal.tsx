@@ -30,7 +30,6 @@ const LoginModal: React.FC<Props> = ({ onClose, onSwitchToRegister, onLoginSucce
       if (!res.ok) throw new Error(data.message || 'Login failed');
       localStorage.setItem('token', data.access_token); 
       onLoginSuccess();
-      console.log('HEllo sucess')
       onClose();
     } catch (err) {
         if (err instanceof Error) {

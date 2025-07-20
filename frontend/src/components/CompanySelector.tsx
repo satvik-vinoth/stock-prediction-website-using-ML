@@ -54,7 +54,6 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({ onCompanySelected }) 
       const res = await fetch(`${baseurl}/stock/${symbol}`);
       if (!res.ok) throw new Error(`Failed to fetch ${symbol} data`);
       const data = await res.json();
-      console.log(data)
       setStockData(data);
     } catch (err: unknown) {
       if (err instanceof Error) {

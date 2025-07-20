@@ -43,7 +43,6 @@ export default function ModelSelector({ company }: ModelSelectorProps) {
       setlogin(false)
       return;
     }
-    console.log(token)
     setSelectedModel(model);
     setPrediction(null);
     setLoading(true);
@@ -203,7 +202,7 @@ export default function ModelSelector({ company }: ModelSelectorProps) {
           <p className="text-gray-700 mb-6">You need to login to view the prediction.</p>
           <button
             onClick={() => setlogin(true)}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded cursor-pointer"
           >
             OK
           </button>
