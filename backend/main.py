@@ -13,7 +13,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://stock-prediction-g3d2yvak6-satvik-vinoths-projects.vercel.app/","https://stock-prediction-git-main-satvik-vinoths-projects.vercel.app/","https://stock-vision-prediction.vercel.app/"],  
+    allow_origins=["http://localhost:3000","https://stock-prediction-g3d2yvak6-satvik-vinoths-projects.vercel.app","https://stock-prediction-git-main-satvik-vinoths-projects.vercel.app","https://stock-vision-prediction.vercel.app"],  
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -35,3 +36,7 @@ async def predict_stock(model: str, symbol: str, user=Depends(get_current_user))
     return {
         "prediction": prediction,
     }
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
