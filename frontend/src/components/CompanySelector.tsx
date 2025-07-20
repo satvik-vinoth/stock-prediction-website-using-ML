@@ -9,10 +9,31 @@ interface CompanySelectorProps {
 }
 
 const CompanySelector: React.FC<CompanySelectorProps> = ({ onCompanySelected }) => {
+
+  interface StockEntry {
+    Open: number;
+    High: number;
+    Low: number;
+    Close: number;
+    Volume: number;
+    EMA_50?: number;
+    MACD_12_26_9?: number;
+    RSI_14?: number;
+    OBV?: number;
+    SMA_50?: number;
+    [key: string]: number | undefined; 
+  }
+  
+  type StockData = {
+    [date: string]: StockEntry;
+  };
+  const baseurl = process.env.NEXT_PUBLIC_API_BASE_URL
   const [selectedCompany, setSelectedCompany] = useState('AAPL');
-  const [stockData, setStockData] = useState<any | null>(null);
+  const [stockData, setStockData] = useState<StockData| null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+
 
   const placeholders = [
     "AAPL (Apple Inc.)",
@@ -30,12 +51,17 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({ onCompanySelected }) 
   const fetchCompanyData = async (symbol: string) => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:8000/stock/${symbol}`);
+      const res = await fetch(`${baseurl}/stock/${symbol}`);
       if (!res.ok) throw new Error(`Failed to fetch ${symbol} data`);
       const data = await res.json();
+      console.log(data)
       setStockData(data);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong fetching data");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Something went wrong fetching data");
+      }
     } finally {
       setLoading(false);
     }
@@ -78,7 +104,7 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({ onCompanySelected }) 
             <thead className="text-xs uppercase bg-[#1c3b35] text-[#39ff14]">
               <tr>
                 <th className="px-4 py-2 text-center">Date</th>
-                {Object.keys(Object.values(stockData)[0] as Record<string, number>).map((key) => (
+                {Object.keys(Object.values(stockData)[0] as StockEntry).map((key) => (
                   <th key={key} className="px-2 py-2 whitespace-nowrap text-[#39ff14] uppercase text-xs text-center">
                     {key}
                   </th>
@@ -86,11 +112,13 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({ onCompanySelected }) 
               </tr>
             </thead>
             <tbody>
-              {Object.entries(stockData).map(([date, data]: any) => (
+              {Object.entries(stockData).map(([date, data]: [string, StockEntry]) => (
                 <tr key={date} className="border-t border-[#39ff1455] hover:bg-[#18332e] transition text-center">
-                  <td className="px-4 py-2 font-semibold text-[#39ff14]">{date.split('T')[0]}</td>
-                  {Object.values(data).map((value: any, idx: number) => (
-                    <td key={idx} className="px-4 py-2 whitespace-nowrap">{Number(value).toFixed(2)}</td>
+                  <td className="px-2 py-2 font-semibold text-[#39ff14]">{date.split('T')[0]}</td>
+                  {Object.values(data).map((value, idx) => (
+                    <td key={idx} className="px-4 py-2 whitespace-nowrap">
+                      {typeof value === "number" ? value.toFixed(2) : "-"}
+                    </td>
                   ))}
                 </tr>
               ))}

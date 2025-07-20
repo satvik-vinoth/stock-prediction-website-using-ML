@@ -41,20 +41,20 @@ def delete_old_models(symbol: str, model: str):
         if file.startswith(f"{symbol.upper()}_{model.lower()}") and not file.endswith(f"{datetime.today().strftime('%Y%m%d')}.pth"):
             os.remove(os.path.join("model_weights", file))
 
-def predict_next_close(symbol: str, model: str):
+async def predict_next_close(symbol: str, model: str):
     model_path = get_model_path(symbol, model)
 
     # Step 1: Train if today's model doesn't exist
     if not os.path.exists(model_path):
         print(f"📢 No model found for {symbol}-{model} today. Retraining...")
-        train_model(symbol, model)
+        await train_model(symbol, model)
         delete_old_models(symbol, model)
         if not os.path.exists(model_path):
             return None
 
     # Step 2: Get data
-    seq, data_min, data_max, all_y_true = prepare_close_sequence(symbol)
-    print(seq.shape)  # Should print: (num_samples, 1) (only feature sequence)
+    seq, data_min, data_max, all_y_true = await prepare_close_sequence(symbol)
+
 
     if seq is None:
         return None
@@ -71,7 +71,6 @@ def predict_next_close(symbol: str, model: str):
 
     # Convert to tensor
     input_tensor = torch.tensor(X, dtype=torch.float32).to(device)
-    print(input_tensor.shape)  # Check if the shape is correct
 
     # Step 3: Load model and predict
     model_class, model_kwargs = get_model_class(model)

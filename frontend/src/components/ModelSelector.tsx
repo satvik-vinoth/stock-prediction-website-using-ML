@@ -4,9 +4,7 @@ import { orbitron } from "@/lib/font";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
-import { color } from "chart.js/helpers";
 
-// Register chart components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 
@@ -16,10 +14,12 @@ interface PredictionData {
     predicted_close: number;
     rmse: number;
     mape: number;
-    recent_actual: number[][];  // Array of arrays of numbers
-    recent_predicted: number[];  // Array of arrays of numbers
-    error?: string;  // Make 'error' optional
+    recent_actual: number[][];  
+    recent_predicted: number[];  
+    error?: string;  
   }
+
+
   
 
 const models = ["GRU", "LSTM", "Transformer"];
@@ -32,18 +32,43 @@ export default function ModelSelector({ company }: ModelSelectorProps) {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<PredictionData | null>(null);
   const [loading, setLoading] = useState(false);
+  const baseurl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const [login,setlogin] = useState(true);
+  
+
 
   const handleModelClick = async (model: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setlogin(false)
+      return;
+    }
+    console.log(token)
     setSelectedModel(model);
     setPrediction(null);
     setLoading(true);
 
+
     try {
-      const res = await axios.get(`http://localhost:8000/predict/${model.toLowerCase()}?symbol=${company}`);
-      setPrediction(res.data);
+      const res = await axios.get(`${baseurl}/predict/${model.toLowerCase()}?symbol=${company}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPrediction(res.data.prediction);
     } catch (err) {
       console.error("Prediction error:", err);
-      setPrediction({ error: "Failed to load prediction." });
+      setPrediction({
+        symbol: "",
+        model: "",
+        predicted_close: 0,
+        rmse: 0,
+        mape: 0,
+        recent_actual: [],
+        recent_predicted: [],
+        error: "Failed to load prediction.",
+      });
+      
     } finally {
       setLoading(false);
     }
@@ -73,51 +98,50 @@ export default function ModelSelector({ company }: ModelSelectorProps) {
   
   const options = {
     responsive: true,
-
     plugins: {
       title: {
         display: true,
         text: "Actual vs Predicted Trend",
-        color: "white"
+        color: "white",
       },
       tooltip: {
-        mode: "index", // Corrected this to use a valid value from the list
+        mode: "index" as const,
         intersect: false,
       },
-      legend:{
+      legend: {
         display: true,
-        labels:{
-            color:"white"
-          }
-      }
-
+        labels: {
+          color: "white",
+        },
+      },
     },
     scales: {
       x: {
         title: {
           display: true,
           text: "Days",
-          color: "white"
+          color: "white",
         },
         ticks: {
-            color: "white", // Set the y-axis labels color to white
+          color: "white",
         },
       },
       y: {
         title: {
           display: true,
           text: "Price",
-          color: "white"
+          color: "white",
         },
         ticks: {
-            color: "white", // Set the y-axis labels color to white
+          color: "white",
         },
-      }, 
+      },
     },
-
   };
   
+  
   return (
+    <>
     <section className="flex flex-col items-center mt-20">
       <h2 className={`${orbitron.className} text-3xl text-[#39ff14] mb-8`}>Choose Your Model</h2>
   
@@ -127,7 +151,7 @@ export default function ModelSelector({ company }: ModelSelectorProps) {
             key={model}
             onClick={() => handleModelClick(model)}
             borderRadius="1.75rem"
-            className="border-[#39ff14] text-white font-bold text-base"
+            className="border-[#39ff14] text-white font-bold text-base tranform hover:scale-125 cursor-pointer"
             borderClassName="bg-[radial-gradient(#39ff14_40%,transparent_60%)]"
           >
             {model}
@@ -172,5 +196,20 @@ export default function ModelSelector({ company }: ModelSelectorProps) {
         {prediction?.error && <p className="text-red-400 mt-4">{prediction.error}</p>}
       </div>
     </section>
+    {!login && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-80 text-center">
+          <h2 className="text-xl font-bold mb-4 text-red-600">Please Login</h2>
+          <p className="text-gray-700 mb-6">You need to login to view the prediction.</p>
+          <button
+            onClick={() => setlogin(true)}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    ) }
+    </>
   );
-  
+}

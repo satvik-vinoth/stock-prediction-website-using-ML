@@ -6,10 +6,10 @@ import numpy as np
 from datetime import datetime
 from stock_utils import prepare_close_sequence
 
-def train_model(symbol: str, model_type: str):
+async def train_model(symbol: str, model_type: str):
     print(f"📈 Training {model_type.upper()} model for {symbol.upper()}")
 
-    seq, data_min, data_max,y_all= prepare_close_sequence(symbol)
+    seq, data_min, data_max,y_all=await prepare_close_sequence(symbol)
     print(seq.shape)
     if seq is None or len(seq) < 61:
         print("❌ Not enough data to train.")

@@ -2,14 +2,13 @@
 import React from 'react';
 import { TextGenerateEffectDemo } from './ui/TextGenerateEffectDemo';
 import { motion } from 'framer-motion';
-import { orbitron } from '@/lib/font'; // or '@/lib/fonts' if placed there
-import {inter} from '@/lib/font';
+import { orbitron } from '@/lib/font';
 
 const FrontPage: React.FC = () => {
   return (
     <main className="relative mt-55 h-100">
       <div className='ml-30'>
-        <h1 className={`text-4xl sm:text-5xl md:text-6xl font-bold text-[#39ff14] mb-4 ${orbitron.className}`}>
+        <h1 className={`text-3xl sm:text-4xl md:text-6xl font-bold text-[#39ff14] mb-4 ${orbitron.className}`}>
           <TextGenerateEffectDemo />
         </h1>
         

@@ -5,8 +5,16 @@ import pandas_ta as ta
 from datetime import datetime
 import numpy as np
 import pandas as pd
+from db.mongo import stock_collection
+from datetime import datetime
+from pymongo import DESCENDING
 
-def fetch_stock_data(symbol: str):
+async def fetch_stock_data(symbol: str):
+    symbol = symbol.upper()
+    today = datetime.today().strftime("%Y-%m-%d")
+    cached = await stock_collection.find_one({"symbol": symbol, "date": today})
+    if cached:
+        return dict(list(cached["data"].items())[-30:])
     try:
         ticker = yf.Ticker(symbol.upper())
         end_date = datetime.today().strftime("%Y-%m-%d")  
@@ -44,14 +52,32 @@ def fetch_stock_data(symbol: str):
             "OBV", "ADI"
         ]
 
-        ohlc_data = ohlc_data[[col for col in final_columns if col in ohlc_data.columns]].dropna()
-        return ohlc_data.tail(30).to_dict(orient="index")
+        final_data = ohlc_data[[col for col in final_columns if col in ohlc_data.columns]].dropna()
+        final_dict = {k.strftime("%Y-%m-%d"): v for k, v in final_data.to_dict(orient="index").items()}
+
+        # 2. Store in MongoDB
+        await stock_collection.insert_one({
+            "symbol": symbol,
+            "date": today,
+            "data": final_dict
+        })
+
+        # Return the last 30 entries (sorted by date key)
+        return dict(list(final_dict.items())[-30:])
+
+
+
 
     except Exception as e:
         print(f"Error fetching data: {e}")
         return None
     
-def fetch_stock_data_training(symbol: str):
+async def fetch_stock_data_training(symbol: str):
+    symbol = symbol.upper()
+    today = datetime.today().strftime("%Y-%m-%d")
+    cached = await stock_collection.find_one({"symbol": symbol, "date": today})
+    if cached:
+        return cached["data"]
     try:
         ticker = yf.Ticker(symbol.upper())
         end_date = datetime.today().strftime("%Y-%m-%d")  
@@ -89,8 +115,16 @@ def fetch_stock_data_training(symbol: str):
             "OBV", "ADI"
         ]
 
-        ohlc_data = ohlc_data[[col for col in final_columns if col in ohlc_data.columns]].dropna()
-        return ohlc_data.to_dict(orient="index")
+        final_data = ohlc_data[[col for col in final_columns if col in ohlc_data.columns]].dropna()
+        final_dict = {k.strftime("%Y-%m-%d"): v for k, v in final_data.to_dict(orient="index").items()}
+
+        await stock_collection.insert_one({
+            "symbol": symbol,
+            "date": today,
+            "data": final_dict
+        })
+
+        return final_dict
 
 
     except Exception as e:
@@ -99,8 +133,8 @@ def fetch_stock_data_training(symbol: str):
 
 
 
-def prepare_close_sequence(symbol: str, seq_length=60):
-    data_dict = fetch_stock_data_training(symbol)
+async def prepare_close_sequence(symbol: str, seq_length=60):
+    data_dict = await fetch_stock_data_training(symbol)
     if data_dict is None:
         return None, None, None
 

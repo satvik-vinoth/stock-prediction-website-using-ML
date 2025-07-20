@@ -1,5 +1,3 @@
-# gru_model.py
-
 import torch.nn as nn
 
 class GRUPredictor(nn.Module):
