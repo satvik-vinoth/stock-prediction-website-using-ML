@@ -16,3 +16,4 @@ scikit-learn
 python-jose
 email-validator
 torch
+numpy==1.24.4

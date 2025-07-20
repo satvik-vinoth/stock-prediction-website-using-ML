@@ -13,7 +13,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["https://stock-prediction-g3d2yvak6-satvik-vinoths-projects.vercel.app/","https://stock-prediction-git-main-satvik-vinoths-projects.vercel.app/","https://stock-vision-prediction.vercel.app/"],  
     allow_methods=["*"],
     allow_headers=["*"],
 )
