@@ -18,7 +18,6 @@ class TransformerConfig:
         self.hidden_dropout_prob = hidden_dropout_prob
         self.max_position_embeddings = max_position_embeddings
 
-# Numeric Embedding: projects raw numeric input to hidden space and adds learned positional embeddings.
 class NumericEmbedding(nn.Module):
     def __init__(self, input_dim, hidden_size, max_seq_length, dropout=0.1):
         super().__init__()
@@ -28,8 +27,7 @@ class NumericEmbedding(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        # x: [batch_size, seq_length, input_dim]
-        x = self.linear(x)  # [batch_size, seq_length, hidden_size]
+        x = self.linear(x) 
         batch_size, seq_length, _ = x.size()
         position_ids = torch.arange(seq_length, device=x.device).unsqueeze(0).expand(batch_size, seq_length)
         pos_emb = self.position_embeddings(position_ids)
@@ -38,16 +36,14 @@ class NumericEmbedding(nn.Module):
         x = self.dropout(x)
         return x
 
-# Scaled Dot-Product Attention
 def scaled_dot_product_attention(query, key, value):
     dim_k = query.size(-1)
-    scores = torch.bmm(query, key.transpose(1, 2))  # [batch_size, seq_length, seq_length]
+    scores = torch.bmm(query, key.transpose(1, 2)) 
     scores = scores / sqrt(dim_k)
     weights = F.softmax(scores, dim=-1)
-    output = torch.bmm(weights, value)  # [batch_size, seq_length, head_dim]
+    output = torch.bmm(weights, value)  
     return output
 
-# Attention Head
 class AttentionHead(nn.Module):
     def __init__(self, embed_dim, head_dim):
         super().__init__()
@@ -62,7 +58,6 @@ class AttentionHead(nn.Module):
         attn_output = scaled_dot_product_attention(query, key, value)
         return attn_output
 
-# Multi-Head Attention
 class MultiHeadAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -78,7 +73,6 @@ class MultiHeadAttention(nn.Module):
         output = self.output_linear(concatenated)
         return output
 
-# Feed-Forward Network
 class FeedForward(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -94,7 +88,6 @@ class FeedForward(nn.Module):
         x = self.dropout(x)
         return x
 
-# Transformer Encoder Layer
 class TransformerEncoderLayer(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -111,7 +104,6 @@ class TransformerEncoderLayer(nn.Module):
         x = self.layer_norm_2(x + self.dropout(ff_output))
         return x
 
-# Simple Transformer Encoder (stack of encoder layers)
 class SimpleTransformerEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -122,7 +114,6 @@ class SimpleTransformerEncoder(nn.Module):
             x = layer(x)
         return x
 
-# Complete Transformer-based Stock Predictor
 class TransformerPredictor(nn.Module):
     def __init__(self, config, input_dim, seq_length):
         super().__init__()
@@ -134,8 +125,8 @@ class TransformerPredictor(nn.Module):
         self.fc = nn.Linear(config.hidden_size, 1)
 
     def forward(self, x):
-        x = self.embedding(x)    # [batch_size, seq_length, hidden_size]
-        x = self.encoder(x)      # [batch_size, seq_length, hidden_size]
-        last_token = x[:, -1, :] # Use the last time step's representation
+        x = self.embedding(x)   
+        x = self.encoder(x)      
+        last_token = x[:, -1, :] 
         out = self.fc(last_token)
         return out

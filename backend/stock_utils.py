@@ -62,7 +62,6 @@ async def fetch_stock_data(symbol: str):
             "data": final_dict
         })
 
-        # Return the last 30 entries (sorted by date key)
         return dict(list(final_dict.items())[-30:])
 
 

@@ -7,8 +7,6 @@ from inference import predict_next_close
 from routes import auth
 from utils.deps import get_current_user
 
-
-
 app = FastAPI()
 
 app.add_middleware(

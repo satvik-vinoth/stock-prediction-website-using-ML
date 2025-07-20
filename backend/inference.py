@@ -44,60 +44,51 @@ def delete_old_models(symbol: str, model: str):
 async def predict_next_close(symbol: str, model: str):
     model_path = get_model_path(symbol, model)
 
-    # Step 1: Train if today's model doesn't exist
     if not os.path.exists(model_path):
-        print(f"📢 No model found for {symbol}-{model} today. Retraining...")
         await train_model(symbol, model)
         delete_old_models(symbol, model)
         if not os.path.exists(model_path):
             return None
 
-    # Step 2: Get data
     seq, data_min, data_max, all_y_true = await prepare_close_sequence(symbol)
 
 
     if seq is None:
         return None
 
-    # Prepare X and y
     X = []
     y = []
-    for i in range(0, len(seq) - 60):  # Use 60 days as the sequence length
-        X.append(seq[i:i+60])  # X: 60 days of stock prices
-        y.append(seq[i+60, 0])  # y: next day's stock price (target)
+    for i in range(0, len(seq) - 60):  
+        X.append(seq[i:i+60]) 
+        y.append(seq[i+60, 0]) 
 
     X = np.array(X)
     y = np.array(y)
 
-    # Convert to tensor
     input_tensor = torch.tensor(X, dtype=torch.float32).to(device)
 
-    # Step 3: Load model and predict
     model_class, model_kwargs = get_model_class(model)
     net = model_class(**model_kwargs).to(device)
     net.load_state_dict(torch.load(model_path, map_location=device))
     net.eval()
 
-    # Create empty list to store predictions
     predictions = []
 
     with torch.no_grad():
         for i in range(len(X)):
-            pred = net(input_tensor[i:i+1])  # Predict for one sequence at a time
-            predictions.append(pred.item())  # Collect predicted values
+            pred = net(input_tensor[i:i+1]) 
+            predictions.append(pred.item())  
 
-    # Inverse scaling
     predicted_prices = np.array(predictions) * (data_max - data_min) + data_min
     actual_prices = all_y_true
 
-    # Calculate RMSE & MAPE (on last n samples)
     rmse = np.sqrt(mean_squared_error(actual_prices[-60:], predicted_prices[-60:]))
     mape = np.mean(np.abs((actual_prices[-60:] - predicted_prices[-60:]) / actual_prices[-60:])) * 100
 
     return {
         "symbol": symbol.upper(),
         "model": model.upper(),
-        "predicted_close": round(predicted_prices[-1], 2),  # Next day's predicted close
+        "predicted_close": round(predicted_prices[-1], 2), 
         "rmse": round(rmse, 2),
         "mape": round(mape, 2),
         "recent_actual": actual_prices[-60:].tolist(),

@@ -7,12 +7,11 @@ from datetime import datetime
 from stock_utils import prepare_close_sequence
 
 async def train_model(symbol: str, model_type: str):
-    print(f"📈 Training {model_type.upper()} model for {symbol.upper()}")
+
 
     seq, data_min, data_max,y_all=await prepare_close_sequence(symbol)
-    print(seq.shape)
     if seq is None or len(seq) < 61:
-        print("❌ Not enough data to train.")
+        print("Not enough data to train.")
         return
     X = []
     y = []
@@ -64,4 +63,3 @@ async def train_model(symbol: str, model_type: str):
     today_str = datetime.today().strftime("%Y%m%d")
     save_path = f"model_weights/{symbol.upper()}_{model_type.lower()}_{today_str}.pth"
     torch.save(model.state_dict(), save_path)
-    print(f"✅ Saved model at {save_path}")
