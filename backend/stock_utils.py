@@ -1,7 +1,6 @@
 # stock_utils.py
 
 import yfinance as yf
-import pandas_ta as ta
 from datetime import datetime
 import numpy as np
 import pandas as pd
