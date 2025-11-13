@@ -18,6 +18,7 @@ export default function Home() {
   useEffect(() => {
     const checkBackend = async () => {
       try {
+        console.log(baseurl)
         const res = await fetch(`${baseurl}/health`);
         if (res.ok) {
           setBackendReady(true);

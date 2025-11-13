@@ -27,16 +27,21 @@ const RegisterModal: React.FC<Props> = ({onClose, onSwitchToLogin }) => {
       setError('Passwords do not match.');
       return;
     }
+    
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email.");
+      return;
+    }
 
     try {
-      const res = await fetch( `${baseurl}/register `, {
+      const res = await fetch( `${baseurl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Registration failed.');
+      if (!res.ok) throw new Error(data.detail || 'Registration failed.');
 
       setSuccessMsg('Registration successful! Please log in.');
     } catch (err) {

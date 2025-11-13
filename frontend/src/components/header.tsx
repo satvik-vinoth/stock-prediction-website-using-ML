@@ -10,7 +10,6 @@ const navItems = [
   { number: '01.', label: 'Home', href: '#home' },
   { number: '02.', label: 'Company', href: '#company' },
   { number: '03.', label: 'Prediction', href: '#prediction' },
-  { number: '04.', label: 'Contact', href: '#contact' },
 ];
 
 
@@ -57,7 +56,7 @@ const Header: React.FC = () => {
             className="group transition"
           >
             <span className="text-[#39ff14] group-hover:text-white">{item.number}</span>
-            <span className="text-gray-300 group-hover:text-white">{item.label}</span>
+            <span className="text-gray-300 group-hover:text-white pl-2">{item.label}</span>
           </a>
         ))}
              {!token ? (

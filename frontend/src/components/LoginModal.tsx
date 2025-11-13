@@ -27,7 +27,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onSwitchToRegister, onLoginSucce
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Login failed');
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
       localStorage.setItem('token', data.access_token); 
       onLoginSuccess();
       onClose();
