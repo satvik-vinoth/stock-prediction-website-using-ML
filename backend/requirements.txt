@@ -8,7 +8,7 @@ uvicorn[standard]
 httpx
 python-multipart
 yfinance
-git+https://github.com/twopirllc/pandas-ta.git
+pandas-ta
 numpy
 pandas
 torch
