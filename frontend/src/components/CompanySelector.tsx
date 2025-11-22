@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
 import { orbitron } from '@/lib/font';
 
@@ -43,10 +43,6 @@ const CompanySelector: React.FC<CompanySelectorProps> = ({ onCompanySelected }) 
     "NVDA (NVIDIA Corp.)",
   ];
 
-  useEffect(() => {
-    fetchCompanyData("AAPL");
-    onCompanySelected("AAPL");
-  }, []);
 
   const fetchCompanyData = async (symbol: string) => {
     try {

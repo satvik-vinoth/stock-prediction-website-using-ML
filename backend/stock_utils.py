@@ -6,7 +6,27 @@ import numpy as np
 import pandas as pd
 from db.mongo import stock_collection
 from datetime import datetime
-from pymongo import DESCENDING
+
+def compute_rsi(series, period=14):
+    delta = series.diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+
+    avg_gain = gain.rolling(period).mean()
+    avg_loss = loss.rolling(period).mean()
+
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+def compute_macd(series, fast=12, slow=26, signal=9):
+    ema_fast = series.ewm(span=fast, adjust=False).mean()
+    ema_slow = series.ewm(span=slow, adjust=False).mean()
+    macd_line = ema_fast - ema_slow
+    signal_line = macd_line.ewm(span=signal, adjust=False).mean()
+    hist = macd_line - signal_line
+    return macd_line, signal_line, hist
+
 
 async def fetch_stock_data(symbol: str):
     symbol = symbol.upper()
@@ -31,8 +51,10 @@ async def fetch_stock_data(symbol: str):
         ohlc_data.index = ohlc_data.index.tz_localize(None)
         ohlc_data["SMA_50"] = ohlc_data["Close"].rolling(window=50).mean()
         ohlc_data["EMA_50"] = ohlc_data["Close"].ewm(span=50, adjust=False).mean()
-        ohlc_data.ta.macd(append=True)
-        ohlc_data.ta.rsi(length=14, append=True)
+        ohlc_data["RSI_14"] = compute_rsi(ohlc_data["Close"], 14)
+
+        macd_line, signal_line, hist = compute_macd(ohlc_data["Close"])
+        ohlc_data["MACD_12_26_9"] = macd_line
 
         ohlc_data["OBV"] = ohlc_data["Volume"].copy()
         for i in range(1, len(ohlc_data)):
@@ -93,8 +115,10 @@ async def fetch_stock_data_training(symbol: str):
         ohlc_data.index = ohlc_data.index.tz_localize(None)
         ohlc_data["SMA_50"] = ohlc_data["Close"].rolling(window=50).mean()
         ohlc_data["EMA_50"] = ohlc_data["Close"].ewm(span=50, adjust=False).mean()
-        ohlc_data.ta.macd(append=True)
-        ohlc_data.ta.rsi(length=14, append=True)
+        ohlc_data["RSI_14"] = compute_rsi(ohlc_data["Close"], 14)
+
+        macd_line, signal_line, hist = compute_macd(ohlc_data["Close"])
+        ohlc_data["MACD_12_26_9"] = macd_line
 
         ohlc_data["OBV"] = ohlc_data["Volume"].copy()
         for i in range(1, len(ohlc_data)):
